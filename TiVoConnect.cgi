@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 ##  Example CGI usage of TiVo::Calypso
-##  Version 1.3.2
+##  Version 1.3.3
 
 ##  Install this CGI using the following Apache directive:
 ##      Alias /TiVoConnect /FULL/path/to/TiVoConnect.cgi

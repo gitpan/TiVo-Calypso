@@ -2,7 +2,7 @@ package TiVo::Calypso;
 
 use 5.006_001;
 
-our $VERSION = '1.3.2';
+our $VERSION = '1.3.3';
 
 ## Currently requires these additional modules for full functionality:
 ##
@@ -393,11 +393,11 @@ sub create_object {
         $self->_Contents = \@contents;
         $server->freeze($self) if defined $server;
 
-        $item = TiVo::Calypso::Container::Server->new(
-            SERVICE => "/",
-            TITLE   => $self->_Name
-          )
-          || return undef;
+        $item = TiVo::Calypso::Container->new(
+            SERVICE => "/Music/Browse/$letter",
+            TITLE   => "/Music/Browse/$letter"
+        )
+        || return undef;
 
         $item->_Contents = \@contents;
     }
