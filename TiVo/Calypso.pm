@@ -2,7 +2,7 @@ package TiVo::Calypso;
 
 use 5.006_001;
 
-our $VERSION = '1.3.3';
+our $VERSION = '1.3.4';
 
 ## Currently requires these additional modules for full functionality:
 ##
@@ -876,6 +876,10 @@ sub command_QUERYCONTAINER {
         else {
             $anchor_pos = 0;
             undef @list;
+            undef $params->_AnchorItem;
+            undef $params->_AnchorOffset;
+            undef $params->_ItemCount;
+            return $self->command_QUERYCONTAINER( $params );
         }
     }
 

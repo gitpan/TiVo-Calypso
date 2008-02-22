@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 ##  Example CGI usage of TiVo::Calypso
-##  Version 1.3.3
+##  Version 1.3.4
 
 ##  Install this CGI using the following Apache directive:
 ##      Alias /TiVoConnect /FULL/path/to/TiVoConnect.cgi
@@ -70,7 +70,7 @@ if( defined($headers) ) {
     # If it's a filehandle ref, read from the file
     } elsif( ref $data eq 'IO::File' ) {
         my $block;
-        while( $data->read($block, 1024) ) {
+        while( $data->read( $block, 1024 ) ) {
             print $block;
         }
 

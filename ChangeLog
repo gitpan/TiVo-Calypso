@@ -1,7 +1,0 @@
-1.3.3	-	2006-04-06	Scott Schneider <sschneid at gmail.com>
-
-	* /Music/Browse/* was being incorrectly returned as a tivo-server object
-	  (as opposed to a folder object), overwriting the external cache file
-	  for the root service(s).
-
-1.3.2	-	initial version
