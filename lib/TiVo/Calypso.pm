@@ -2,7 +2,7 @@ package TiVo::Calypso;
 
 use 5.006_001;
 
-our $VERSION = '1.3.4';
+our $VERSION = '1.3.5';
 
 ## Currently requires these additional modules for full functionality:
 ##
@@ -42,11 +42,11 @@ sub AUTOLOAD : lvalue {
     $self->{'DATA'}->{ uc($1) };
 }
 
-## TiVo::Calypso->uri_unescape( $ )
+## TiVo::Calypso->_uri_unescape( $ )
 ##
 ##  Decodes URI strings per RFC 2396
 
-sub uri_unescape {
+sub _uri_unescape {
     my $self = shift;
     my $str  = shift;
 
@@ -56,11 +56,11 @@ sub uri_unescape {
     return $str;
 }
 
-## TiVo::Calypso->uri_escape( $ )
+## TiVo::Calypso->_uri_escape( $ )
 ##
 ##  Encodes URI strings per RFC 2396
 
-sub uri_escape {
+sub _uri_escape {
     my $self = shift;
     my $str  = shift || return undef;
 
@@ -70,12 +70,12 @@ sub uri_escape {
     return $str;
 }
 
-## TiVo::Calypso->servicename( $ )
+## TiVo::Calypso->_servicename( $ )
 ##
 ##  Returns the service name (first element of object path) of the object
 ##  or passed argument
 
-sub servicename {
+sub _servicename {
     my $self = shift;
     my $path = shift || $self->_Object || return undef;
 
@@ -84,12 +84,12 @@ sub servicename {
     return $1;
 }
 
-## TiVo::Calypso->basename( $ )
+## TiVo::Calypso->_basename( $ )
 ##
 ##  Returns the basename (filename) of the object's internal Path
 ##  or passed argument
 
-sub basename {
+sub _basename {
     my $self = shift;
     my $path = shift || $self->_Path || return undef;
 
@@ -98,12 +98,12 @@ sub basename {
     return pop @path_parts;
 }
 
-## TiVo::Calypso->query_container
+## TiVo::Calypso->_query_container
 ##
 ##   Returns a data structure (suitable for use with xml_out) which
 ##   describes this object in response to a QueryContainer command
 
-sub query_container {
+sub _query_container {
     my $self   = shift;
     my $params = shift;
 
@@ -113,7 +113,7 @@ sub query_container {
         'Item' => [
             {
                 'Details' => {
-                    'Title' => $self->_Title || $self->basename,
+                    'Title' => $self->_Title || $self->_basename,
                     'ContentType'  => $self->_ContentType,
                     'SourceFormat' => $self->_SourceFormat
                 }
@@ -197,7 +197,7 @@ sub expire {
     # if it is expired.
     my $rval = 1;    # Assume it's expired
     if ( defined($item) ) {
-        my $service = $self->servicename($path);
+        my $service = $self->_servicename($path);
 
         return 1 unless defined $self->_Services->{$service};
         $service = $self->_Services->{$service};
@@ -404,7 +404,7 @@ sub create_object {
 
     # Perform filesystem scan
     else {
-        my $service = $self->servicename($path);
+        my $service = $self->_servicename($path);
 
         return undef unless defined $self->_Services->{$service};
         $service = $self->_Services->{$service};
@@ -476,7 +476,7 @@ sub request {
 
     # File transfer requested? (binary output)
     if ( defined( $params->_EnvPathInfo ) && $params->_EnvPathInfo ) {
-        my $path_info = $self->uri_unescape( $params->_EnvPathInfo );
+        my $path_info = $self->_uri_unescape( $params->_EnvPathInfo );
 
         my $item = $self->thaw($path_info) || return undef;
 
@@ -886,7 +886,7 @@ sub command_QUERYCONTAINER {
     # Build description of each item to be returned
     my @children;
     foreach my $child (@list) {
-        push( @children, $child->query_container($params) );
+        push( @children, $child->_query_container($params) );
     }
 
     my $return = {
@@ -970,7 +970,7 @@ sub new {
     $self->_SourceFormat = 'x-container/folder';
     $self->_Url          =
       '?Command=QueryContainer&Container='
-      . $self->uri_escape( $self->_Object );
+      . $self->_uri_escape( $self->_Object );
 
     $self->_Expired = 0;
 
@@ -989,7 +989,7 @@ sub init {
 
     $self->_ContentType = 'x-container/folder';
 
-    $self->_Title = $self->_Title || $self->basename;
+    $self->_Title = $self->_Title || $self->_basename;
 
     return 1;
 }
@@ -1311,7 +1311,7 @@ sub new {
 
     $self->_Object = $self->_Service->path_to_obj( $self->_Path )
       || return undef;
-    $self->_Url = $self->uri_escape( $self->_Object );
+    $self->_Url = $self->_uri_escape( $self->_Object );
 
     # Contruct ContentType from SourceFormat
     my $content_type = $self->_SourceFormat;
@@ -1390,7 +1390,7 @@ sub init {
     $self->_Artist = $tag->{'ARTIST'} || "";
     $self->_Album  = $tag->{'ALBUM'}  || "";
     $self->_Year   = $tag->{'YEAR'}   || "";
-    $self->_Title  = $tag->{'TITLE'}  || $self->basename;
+    $self->_Title  = $tag->{'TITLE'}  || $self->_basename;
 
     # Get timestamps and size if the file referenced by Path exists
     if ( stat( $self->_Path ) ) {
@@ -1412,12 +1412,12 @@ sub init {
     return 1;
 }
 
-## TiVo::Calypso::Item::MP3->query_container
+## TiVo::Calypso::Item::MP3->_query_container
 ##
 ##   Returns a data structure suitable for use with xml_out which
 ##   describes this object in response to a QueryContainer command
 
-sub query_container {
+sub _query_container {
     my $self   = shift;
     my $params = shift;
 
@@ -1549,8 +1549,8 @@ sub parse {
             if ( defined($key) ) {
 
                 # Escape each key and value before storing
-                $key = $self->uri_unescape($key);
-                $self->{'DATA'}->{ uc($key) } = $self->uri_unescape($value);
+                $key = $self->_uri_unescape($key);
+                $self->{'DATA'}->{ uc($key) } = $self->_uri_unescape($value);
             }
         }
     }
